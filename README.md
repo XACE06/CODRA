@@ -222,6 +222,15 @@ MAX_REPLY_EN_CHARS=320
 
 本项目不能只用 GitHub Pages 部署完整体验。GitHub Pages 只能托管静态前端，不能安全运行 `/api/chat`、`/api/tts`，也不能保护 DeepSeek 和 ElevenLabs API Key。
 
+如果只是想让 GitHub Pages 打开一个可看的前端预览，请在仓库 Settings → Pages 中选择：
+
+```text
+Branch: main
+Folder: /docs
+```
+
+`docs/` 中提交的是静态预览构建产物。它会使用 mock 对话和 mock 语音，不会调用 DeepSeek 或 ElevenLabs。
+
 推荐流程：
 
 1. 将源码上传到 GitHub。

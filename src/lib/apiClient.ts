@@ -1,14 +1,32 @@
 import type { CodraEmotion, CodraReply, ConversationTurn, MusicRecommendation, PublicConfig } from "./types";
 
 const debugClient = import.meta.env.DEV;
+const isGitHubPagesPreview = import.meta.env.PROD && import.meta.env.BASE_URL === "/CODRA/";
 
 export async function getPublicConfig(): Promise<PublicConfig> {
-  const response = await fetch("/api/config");
-  if (!response.ok) throw new Error("Unable to load runtime config.");
-  return response.json();
+  try {
+    const response = await fetch("/api/config");
+    if (!response.ok) throw new Error("Unable to load runtime config.");
+    return response.json();
+  } catch (error) {
+    if (!isGitHubPagesPreview) throw error;
+
+    return {
+      appEnv: "development",
+      showDevControls: true,
+      useMockChat: true,
+      useMockTts: true,
+      autoTts: false,
+      enableTtsCache: true,
+      maxContextTurns: 3,
+      maxReplyEnChars: 320
+    };
+  }
 }
 
 export async function sendChatMessage(message: string, conversation: ConversationTurn[]): Promise<CodraReply> {
+  if (isGitHubPagesPreview) return getStaticPreviewReply(message);
+
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -107,4 +125,40 @@ function normalizeRecommendation(value: unknown): MusicRecommendation | null {
 
 function debugLog(...args: unknown[]) {
   if (debugClient) console.info(...args);
+}
+
+function getStaticPreviewReply(message: string): CodraReply {
+  const text = message.toLowerCase();
+  const asksForMusic = /music|song|playlist|歌|音乐|歌曲|推荐/.test(text);
+
+  if (asksForMusic) {
+    return {
+      reply_en: "Try these. Keep them low, soft, and close to you for a while.",
+      reply_zh: "试试这几首。让它们轻一点、软一点，先陪你待一会儿。",
+      emotion: "soft",
+      music_recommendations: [
+        {
+          title: "Show Me How",
+          artist: "Men I Trust",
+          reason_en: "Soft, slow, and gently detached.",
+          reason_zh: "柔软、缓慢，有一点轻轻的疏离感。",
+          apple_music_search_url: "https://music.apple.com/search?term=Show%20Me%20How%20Men%20I%20Trust"
+        },
+        {
+          title: "Space Song",
+          artist: "Beach House",
+          reason_en: "Dreamy, quiet, and easy to sink into.",
+          reason_zh: "梦幻、安静，很容易沉进去。",
+          apple_music_search_url: "https://music.apple.com/search?term=Space%20Song%20Beach%20House"
+        }
+      ]
+    };
+  }
+
+  return {
+    reply_en: "I hear you. Stay with me for a second, and tell me the part that feels heaviest.",
+    reply_zh: "我听见了。先陪我待一秒，告诉我最压着你的那一部分。",
+    emotion: "warm",
+    music_recommendations: []
+  };
 }
