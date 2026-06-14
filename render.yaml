@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: codra-voice-prototype
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SHOW_DEV_CONTROLS
+        value: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_MODEL
+        value: deepseek-chat
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: USE_MOCK_CHAT
+        value: false
+      - key: USE_MOCK_TTS
+        value: false
+      - key: AUTO_TTS
+        value: true
+      - key: ENABLE_TTS_CACHE
+        value: true
+      - key: TTS_DEBUG
+        value: false
+      - key: MAX_CONTEXT_TURNS
+        value: 3
+      - key: MAX_REPLY_EN_CHARS
+        value: 320
